@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Snake</title>
+		<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+		<script src="https://wagenaartje.github.io/neataptic/cdn/1.4.7/neataptic.js"></script>
+	</head>
+	<body>
+		<canvas id="canvas" width="400" height="400"></canvas>
+		<div id="scoreboard">
+			<div id="header">Scoreboard</div>
+			<div id="scores">
+				<ol>
+					<li></li>
+					<li></li>
+					<li></li>
+					<li></li>
+					<li></li>
+					<li></li>
+					<li></li>
+					<li></li>
+					<li></li>
+					<li></li>
+				</ol>
+			</div>
+			<div id="current">Current score: 0</div>
+		</div>
+		<button id="wallToggle" onclick="toggleWallCollision()">Toggle walls</button>
+	</body>
+	<style>
+		body {background-color: ivory}
+		#canvas {
+			border: 5px solid red;
+			background-color: black;
+		}
+		#scoreboard {
+			width: 200px;
+			height: 250px;
+			border: 3px solid black;
+			float: left;
+			margin: 10px;
+		}
+		#header{
+			text-align: center;
+		}
+		#current{
+			text-align: center;
+		}
+		#wallToggle {
+			float: left;
+			margin: 10px;
+		}
+	</style>
+	<script type="text/javascript">
+
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext("2d");
+
+		var gs=tc = 20;
+		var highscore = [];
+
+		var wallCollision = true;
+
+
+		class Player {
+			constructor(start_x, start_y, color) {
+				this.x = start_x;
+				this.y = start_y;
+				this.color = color;
+				this.v_x = 0;
+				this.v_y = 0;
+				this.next_vx = 0;
+				this.next_vy = 0;
+				this.ax = Math.floor(Math.random() * tc);
+				this.ay = Math.floor(Math.random() * tc);
+				this.tail = 4;
+				this.trail = [];
+				this.score = 0;
+			}
+
+			updateVelocities(){
+				if(this.v_x * -1 != this.next_vx) this.v_x = this.next_vx;
+				if(this.v_y * -1 != this.next_vy) this.v_y = this.next_vy;
+			}
+
+			move(direction){
+				switch(direction){
+					case "left":
+						this.next_vx = -1; this.next_vy =0;
+						break;
+					case "up":
+						this.next_vx = 0; this.next_vy = -1;
+						break;
+					case "right":
+						this.next_vx = 1; this.next_vy = 0;
+						break;
+					case "down":
+						this.next_vx = 0; this.next_vy = 1;
+				}
+			}
+
+			reset() {
+				this.tail = 4;
+				this.trail = [];
+				this.v_x=this.v_y=this.next_vx=this.next_vy=0;
+				this.x=this.y = tc/2;
+				addHighscore(this.score);
+				this.score = 0;
+				updateCurrentScore(this.score);
+			}
+
+			updatePosition(){
+				this.trail.push({x:this.x, y:this.y});
+				this.x += this.v_x;
+				this.y += this.v_y;
+				while(this.trail.length > this.tail){
+					this.trail.shift();
+				}
+				handleWallCollision(this);
+			}
+
+			appleCaught(){
+				this.tail++;
+				this.score += 15;
+				let done = false;
+				while(!done){
+					done = true;
+					this.ax = Math.floor(Math.random() * tc);
+					this.ay = Math.floor(Math.random() * tc);
+					for(let i = 0; i < this.trail.length; i++){
+						if(this.trail[i].x == this.ax && this.trail[i].y == this.ay){
+							done = false;
+						}
+					}
+				}
+				updateCurrentScore(this.score);
+			}
+
+			paintBody(){
+				ctx.fillStyle = this.color;
+				ctx.fillRect(this.x * gs, this.y * gs, gs-2, gs-2);
+				for(let i = 0; i < this.trail.length; i++){
+					ctx.fillRect(this.trail[i].x*gs, this.trail[i].y*gs, gs-2, gs-2);
+					if(this.trail[i].x == this.x && this.trail[i].y == this.y){
+						this.reset();
+					}
+				}
+				if(this.x == this.ax && this.y == this.ay){
+					this.appleCaught();
+				}
+			}
+
+			paintApple(){
+				ctx.fillStyle = 'red';
+				ctx.fillRect(this.ax*gs, this.ay*gs, gs-2, gs-2);
+				ctx.fillStyle = this.color;
+				ctx.fillRect(this.ax*gs+3, this.ay*gs+3, gs-8, gs-8);
+			}
+		}
+
+		var players = [];
+		players.push(new Player(tc/2, tc/2, 'lime'));
+
+		$(document).ready(function() {
+			setInterval(function(){
+				clearCanvas();
+				for(let i = 0; i < players.length; i++){
+					players[i].updateVelocities();
+					players[i].updatePosition();
+					players[i].paintBody();
+					players[i].paintApple();
+				}
+			}, 1000/15);
+		});
+
+		$(document).bind('keydown', function(e) {
+			handleKeydown(e);
+		});
+
+		function handleKeydown(e){
+			if(e.keyCode == 37) {
+				players[0].move("left");
+			}
+			if(e.keyCode == 38) {
+				players[0].move("up");
+			}
+			if(e.keyCode == 39) {
+				players[0].move("right");
+			}
+			if(e.keyCode == 40) {
+				players[0].move("down");
+			}
+		}
+
+		function clearCanvas(){
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+		}
+
+		function updateCurrentScore(score){
+			$('#current').text("Current score: " + score);
+		}
+
+		function addHighscore(score){
+			highscore.push(score);
+			highscore.sort(sortNumber);
+			scoreboard = $("#scoreboard");
+			scores = scoreboard.find("li");
+			if(highscore.length > 10){
+				highscore = highscore.slice(0, 10);
+			}
+			for(let i = 0; i < highscore.length; i++){
+				if(highscore[i]) $(scores[i]).text(highscore[i]);
+			}
+		}
+
+		function sortNumber(a,b) {
+			return b-a;
+		}
+
+		function handleWallCollision(player){
+			if(wallCollision){
+				if(player.x < 0 || player.x >= tc || player.y >= tc || player.y < 0) {
+					player.reset();
+				}
+			} else {
+				if(player.x < 0) {
+					player.x = tc-1;
+				}
+				if(player.x >= tc){
+					player.x = 0;
+				}
+				if(player.y < 0) {
+					player.y = tc-1;
+				}
+				if(player.y >= tc){
+					player.y = 0;
+				}
+			}
+
+		}
+
+		function toggleWallCollision(){
+			if(wallCollision){
+				$('#canvas').css('border-color', 'black')
+
+			} else {
+				$('#canvas').css('border-color', 'red')
+			}
+			wallCollision = !wallCollision;
+		}
+
+	</script>
+</html>
