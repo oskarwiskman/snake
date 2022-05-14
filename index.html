@@ -65,6 +65,7 @@
 		var ctx = canvas.getContext("2d");
 
 		var gs=tc = 20;
+		var speed=150; // Move frequency in ms.
 		var highscore = [];
 
 		var wallCollision = true;
@@ -178,7 +179,7 @@
 					players[i].paintBody();
 					players[i].paintApple();
 				}
-			}, 1000/15);
+			}, speed);
 		});
 
 		$(document).bind('keydown', function(e) {
