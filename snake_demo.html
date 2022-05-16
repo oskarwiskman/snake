@@ -7,48 +7,13 @@
 	</head>
 	<body>
 		<canvas id="canvas" width="400" height="400"></canvas>
-		<div id="scoreboard">
-			<div id="header">Scoreboard</div>
-			<div id="scores">
-				<ol>
-					<li></li>
-					<li></li>
-					<li></li>
-					<li></li>
-					<li></li>
-					<li></li>
-					<li></li>
-					<li></li>
-					<li></li>
-					<li></li>
-				</ol>
-			</div>
-			<div id="current">Current score: 0</div>
-		</div>
-		<button id="wallToggle" onclick="toggleWallCollision()">Toggle walls</button>
+		<div id="current">Poäng: 0</div>
 	</body>
 	<style>
 		body {background-color: ivory}
 		#canvas {
 			border: 5px solid red;
 			background-color: black;
-		}
-		#scoreboard {
-			width: 200px;
-			height: 250px;
-			border: 3px solid black;
-			float: left;
-			margin: 10px;
-		}
-		#header{
-			text-align: center;
-		}
-		#current{
-			text-align: center;
-		}
-		#wallToggle {
-			float: left;
-			margin: 10px;
 		}
 	</style>
 	<script type="text/javascript">
@@ -57,12 +22,8 @@
 		var ctx = canvas.getContext("2d");
 
 		var tc=20; // Tile count. 
-		var gs=20; // Game size. 
-		var highscore=[];
+		var gs=20; // Game size.
 		var speed=150; // Move snake every 'speed' ms.
-
-		var wallCollision = true;
-
 
 		class Player {
 			constructor(start_x, start_y, color) {
@@ -106,7 +67,6 @@
 				this.trail = [];
 				this.v_x=this.v_y=this.next_vx=this.next_vy=0;
 				this.x=this.y = tc/2;
-				addHighscore(this.score);
 				this.score = 0;
 				updateCurrentScore(this.score);
 			}
@@ -199,56 +159,13 @@
 		}
 
 		function updateCurrentScore(score){
-			$('#current').text("Current score: " + score);
-		}
-
-		function addHighscore(score){
-			highscore.push(score);
-			highscore.sort(sortNumber);
-			scoreboard = $("#scoreboard");
-			scores = scoreboard.find("li");
-			if(highscore.length > 10){
-				highscore = highscore.slice(0, 10);
-			}
-			for(let i = 0; i < highscore.length; i++){
-				if(highscore[i]) $(scores[i]).text(highscore[i]);
-			}
-		}
-
-		function sortNumber(a,b) {
-			return b-a;
+			$('#current').text("Poäng: " + score);
 		}
 
 		function handleWallCollision(player){
-			if(wallCollision){
-				if(player.x < 0 || player.x >= tc || player.y >= tc || player.y < 0) {
-					player.reset();
-				}
-			} else {
-				if(player.x < 0) {
-					player.x = tc-1;
-				}
-				if(player.x >= tc){
-					player.x = 0;
-				}
-				if(player.y < 0) {
-					player.y = tc-1;
-				}
-				if(player.y >= tc){
-					player.y = 0;
-				}
+			if(player.x < 0 || player.x >= tc || player.y >= tc || player.y < 0) {
+				player.reset();
 			}
-
-		}
-
-		function toggleWallCollision(){
-			if(wallCollision){
-				$('#canvas').css('border-color', 'black')
-
-			} else {
-				$('#canvas').css('border-color', 'red')
-			}
-			wallCollision = !wallCollision;
 		}
 
 	</script>
